@@ -21,48 +21,27 @@ fi
 cd $1
 
 # download codeigniter
-curl -C - -L http://codeigniter.com/download.php -o ci.zip
+curl -C - -L https://github.com/Estilingue/ECodeigniter/archive/master.zip -o ci.zip
 
 # extract codeigniter
 unzip ci.zip
-mv CodeIgniter*/* .
-rm -rf CodeIgniter* ci.zip
-
-# kill the user guide and index.php
-rm -rf user_guide index.php
+mv ECodeigniter*/* .
+rm -rf ECodeigniter* ci.zip
 
 # find and remove all the index.html files
 find . -name 'index.html' -exec rm -f {} \;
 
-# find and remove all the .htaccess files
-find . -name '.htaccess' -exec rm -f {} \;
+# remove the base .htaccess from template
+rm -rf .htaccess
 
-# make an httpdocs folder and assets folder
-mkdir -p httpdocs/-/css httpdocs/-/js httpdocs/-/img
-touch httpdocs/-/css/style.css httpdocs/-/js/core.js
-
-# move over files
-mv license.txt httpdocs/.
-cp $DIR/templates/index.php $DIR/templates/.htaccess httpdocs/.
-cp $DIR/templates/config.php $DIR/templates/routes.php application/config/.
-cp $DIR/templates/pages.php application/controllers/.
+# copy over .htaccess
+cp $DIR/templates/.htaccess .
 
 # set permissions on cache and log folder
 chmod 755 application/cache application/logs
 
-# clear out welcome project
-rm application/controllers/welcome.php application/views/welcome_message.php
-
-# check if we should skip sparks
-if [ "$2" != "--no-sparks" ]; then
-
-	# add sparks
-	php -r "$(curl -fsSL http://getsparks.org/go-sparks)"
-
-fi
-
 # check if we should skip git
-if [ "$3" != "--no-git" ]; then
+if [ "$2" != "--no-git" ]; then
 
 	# copy over .gitignore
 	cp $DIR/templates/.gitignore .
@@ -71,30 +50,6 @@ if [ "$3" != "--no-git" ]; then
 	git init
 	git add * .gitignore
 	git commit -m "Initial commit."
-
-	# check if we should skip remote sync
-	if [ "$4" != "--no-gitremote" ]; then
-
-		# check if the repo exists and is writable
-		EXISTS=$(git ls-remote $REPO_URL:$1.git 2>&1)
-
-		if [ "$EXISTS" == "" ]; then
-			git remote add origin $REPO_URL:$1.git
-			git push origin master
-			git checkout origin/master
-			git branch -f master origin/master
-			git checkout master
-		fi
-
-	fi
-
-	# check if we should set up git flow
-	if [ "$5" != "--no-gitflow" ]; then
-
-		# add git flow
-		git flow init -d
-
-	fi
 
 fi
 
@@ -112,14 +67,5 @@ echo "    encryption_key value ($MD5)"
 echo ""
 echo " 2. In 'application/config/database.php' add database credentials"
 echo ""
-
-	if [ "$2" != "--no-sparks" ]; then
-
-	echo " 3. Change the line in 'application/core/MY_Loader.php' Line 50, to:"
-	echo ""
-	echo "       define('SPARKPATH', '../sparks/');"
-
-	fi
-
 echo "========================================================================"
 echo ""
